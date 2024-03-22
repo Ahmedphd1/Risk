@@ -1,0 +1,34 @@
+{
+    "name": "customactions",
+    "maps": [
+        {
+            "name": "rightclick",
+            "id": "dfdb750a-ecc3-4f07-8019-c14e5609bca7",
+            "actions": [
+                {
+                    "name": "clickmove",
+                    "type": "Button",
+                    "id": "3c874341-e872-4610-8cc8-49c771122580",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "949f9ac8-a43e-4a5e-9c22-2f0fb724a53f",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "clickmove",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

@@ -1,0 +1,8 @@
+// ---------------Correct rotation and scales after parenting------------------ // - Rotating on x axis
+1. use "apply transformation" when exporting as fbx
+
+
+// ---------------Correct rotation and scales before parenting------------------ // - Rotating on x axis
+if you already have rotated the parent object correctly and you make a new object to parent. then you need to follow this
+1. rotate the child object -90 and apply rotation
+2. rotate the child object to 90
