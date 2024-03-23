@@ -7,10 +7,7 @@ TagManager:
   - selectcircle
   - boxselection
   - healthbarsystem
-  - player2
-  - player1
   - aggrorange
-  - neutral
   layers:
   - Default
   - TransparentFX
