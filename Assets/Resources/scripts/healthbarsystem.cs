@@ -8,7 +8,7 @@ public class healthbarsystem : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        this.transform.localPosition = new Vector3(0f, minion.GetComponent<BoxCollider>().transform.localScale.y, 0f);
+        this.transform.localPosition = new Vector3(0f, minion.GetComponent<BoxCollider>().transform.lossyScale.y, 0f);
     }
 
     // Update is called once per frame

@@ -23,6 +23,7 @@ public class BaseController : NetworkBehaviour
         if (init)
         {
             if (!IsOwner) { return; }
+            print($" is owner : {OwnerClientId}");
 
             meshcollider = this.transform.parent.parent.GetComponent<MeshCollider>();
             basecircle = this.transform.gameObject;
