@@ -4,13 +4,21 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using Unity.Netcode;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
-public class setupmap : MonoBehaviour
+public class setupmap : NetworkBehaviour
 {
     [SerializeField] private Button server;
     [SerializeField] private Button host;
     [SerializeField] private Button client;
-
+    [SerializeField] private Button start;
+    List<string> bases = new List<string>()
+    {
+        "denmark",
+        "norway"
+    };
 
 
 
@@ -30,21 +38,80 @@ public class setupmap : MonoBehaviour
         {
             NetworkManager.Singleton.StartClient();
         });
+
+        start.onClick.AddListener(() =>
+        {
+            if (IsServer)
+            {
+                Dictionary<GameObject, ulong> bases = getbases();
+
+                if (bases != null)
+                {
+                    // assign bases ownership
+
+                    if (assignbases(bases))
+                    {
+                        // request start to client
+                        RequestInitClientRpc();
+                    }
+                }
+            }
+        });
     }
 
-    void setupbasebuilding(GameObject basebuilding, MeshCollider surfacemesh, Renderer surfacerenderer)
+    [ClientRpc]
+    private void RequestInitClientRpc()
     {
-        // adding basecontroller to basebuilding
+        for (int i = 0; i < this.transform.childCount; i++)
+        {
+            this.transform.GetChild(i).GetChild(0).GetChild(0).GetComponent<BaseController>().init = true;
+        }
+    }
 
-        BaseController controllerscript = basebuilding.transform.AddComponent<BaseController>();
-        controllerscript.meshcollider = surfacemesh;
-        controllerscript.surfacerenderer = surfacerenderer;
-        controllerscript.worldmap = this.gameObject;
-        controllerscript.building = basebuilding.transform.gameObject;
+    bool assignbases(Dictionary<GameObject, ulong> bases)
+    {
+        try
+        {
 
+            foreach (var kvp in bases)
+            {
+                if (kvp.Value != 0)
+                {
+                    GameObject basesurface = kvp.Key;
+                    GameObject basebuilding = basesurface.transform.GetChild(0).gameObject;
+                    GameObject basecurcle = basebuilding.transform.GetChild(0).gameObject;
 
-        // adding spawnminion to basebuilding
-        spawnminion spawnminionscript = basebuilding.transform.AddComponent<spawnminion>();
-        spawnminionscript.spawntime = 5;
+                    basesurface.GetComponent<NetworkObject>().ChangeOwnership(kvp.Value);
+                    basebuilding.GetComponent<NetworkObject>().ChangeOwnership(kvp.Value);
+                    basecurcle.GetComponent<NetworkObject>().ChangeOwnership(kvp.Value);
+                }
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            print("Cannot assign bases. something went wrong : ->");
+            print(ex.Message);
+            Application.Quit();
+            return false;
+        }
+    }
+
+    Dictionary<GameObject, ulong> getbases()
+    {
+        try
+        {
+            IReadOnlyList<ulong> clientids = NetworkManager.Singleton.ConnectedClientsIds;
+
+            Dictionary<GameObject, ulong> zipped = bases.Zip(clientids.Concat(Enumerable.Repeat(playertags.serverid, bases.Count - clientids.Count)), (baseName, clientId) => new { BaseName = baseName, ClientId = clientId }).ToDictionary(obj => GameObject.Find(obj.BaseName).gameObject, obj => obj.ClientId);
+            return zipped;
+        } catch (Exception ex)
+        {
+            print("Cannot get bases. something went wrong : ->");
+            print(ex.Message);
+            Application.Quit();
+            return new Dictionary<GameObject, ulong>();
+        }
     }
 }

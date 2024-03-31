@@ -11,11 +11,6 @@ public class minion : MonoBehaviour
 
     public bool isdead { get; set; } = false;
 
-    public void spawnminion()
-    {
-        this.GetComponent<NetworkObject>().Spawn(true);
-    }
-
     public GameObject getquad()
     {
         return this.getminion().transform.Cast<Transform>().ToList().FirstOrDefault(child => child.tag == playertags.selectcircle).gameObject;

@@ -1,64 +1,53 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using Unity.AI.Navigation;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UIElements;
 
-public class BaseController : MonoBehaviour
+public class BaseController : NetworkBehaviour
 {
 
     // initiating fields
-    public MeshCollider meshcollider;
-    public Renderer surfacerenderer;
-    public GameObject worldmap;
-    public GameObject building;
+    private MeshCollider meshcollider;
     private GameObject basecircle;
     private minion minion;
-    private string killertag;
+    private ulong killertag;
+    public bool init;
 
     // TODO: Make minion unclickable and unmoveable when inside the circle
-    void Start()
-    {
-        basecircle = this.transform.GetChild(0).gameObject;
-
-        minion = initminion(worldmap, basecircle, building.tag);
-    }
 
     // Update is called once per frame
     void Update()
     {
+
+        if (init)
+        {
+            if (!IsOwner) { return; }
+
+            meshcollider = this.transform.parent.parent.GetComponent<MeshCollider>();
+            basecircle = this.transform.gameObject;
+
+            minion = initminion(basecircle);
+            init = false;
+        }
+
         // finding a minion when the base circle is empty
-        if (hasminion(basecircle) == false)
-        {
-            minion = setminion(getplayer(killertag, meshcollider));
 
-            if (minion != null)
-            {
-                setbasetag(minion.getcanvas().tag);
-            }
-        }
-        else
-        {
-            minion killer = minion.gethealthbar().attackedby;
+        //if (hasminion(basecircle) == false)
+        //{
+        //    if (killertag != null) {
+        //        minion = setminion(getplayer(killertag, meshcollider));
+        //    }
+        //}
+        //else
+        //{
+        //    minion killer = minion.gethealthbar().attackedby;
 
-            if (killer != null)
-            {
-                killertag = killer.getcanvas().tag;
-            }
-        }
-    }
-
-    private void setbasetag(string basetag)
-    {
-        if (basetag == playertags.player1) {
-            building.tag = playertags.player1;
-        } else if (basetag == playertags.player2)
-        {
-            building.tag = playertags.player2;
-        }
+        //    if (killer != null)
+        //    {
+        //        killertag = killer.getcanvas().GetComponent<NetworkObject>().OwnerClientId;
+        //    }
+        //}
     }
 
     // function to set a minion
@@ -80,7 +69,7 @@ public class BaseController : MonoBehaviour
     }
 
     // function to get a player detected from the mesh controller
-    minion getplayer(string killedby, MeshCollider meshcollider)
+    minion getplayer(ulong killedby, MeshCollider meshcollider)
     {
         minion player = null;
         // Check if the MeshCollider is not null
@@ -92,10 +81,7 @@ public class BaseController : MonoBehaviour
             Vector3 boxSize = meshcollider.bounds.size;
             Vector3 boxCenter = meshcollider.bounds.center;
 
-            if (killedby != null)
-            {
-                player = Physics.OverlapBox(boxCenter, boxSize / 2).Where(obj => obj.transform.tag.Contains(playertags.anyplayer) && obj.transform.tag == killedby).Select(obj => obj.transform.gameObject).FirstOrDefault().GetComponent<minion>();
-            }
+            player = Physics.OverlapBox(boxCenter, boxSize / 2).Where(obj => obj.GetComponent<NetworkObject>().OwnerClientId == killertag).Select(obj => obj.transform.gameObject).FirstOrDefault().GetComponent<minion>();
 
             return player;
         }
@@ -116,31 +102,23 @@ public class BaseController : MonoBehaviour
         }
     }
 
-    minion initminion(GameObject worldmap, GameObject basecircle, string basetag)
+    minion initminion(GameObject basecircle)
     {
-        float minionscale = scaleminion(worldmap.transform.localScale, 5);
 
         minion minion = Instantiate(crab.getprefab()).GetComponent<minion>();
-        minion.getcanvas().transform.localScale = new Vector3(minionscale, minionscale, minionscale);
+        minion.getcanvas().transform.localScale = crab.getscale();
         minion.getcanvas().name = crab.getname();
 
-        if (NavMesh.CalculateTriangulation().vertices.Length > 0)
+        if (minion != null)
         {
-            if (minion != null)
-            {
-                minion.isclickable = false;
-                minion.ismoveable = false;
-                minion.getcanvas().tag = basetag;
-                minion.spawnminion();
-                minion.getcanvas().transform.SetParent(basecircle.transform, false);
-                minion.getcanvas().transform.localPosition = Vector3.zero;
-                worldmap.GetComponent<NavMeshSurface>().BuildNavMesh();
-
-                return minion;
-
-            }
+            minion.isclickable = false;
+            minion.ismoveable = false;
+            minion.getcanvas().GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
+            minion.getcanvas().transform.SetParent(basecircle.transform, false);
+            minion.getcanvas().transform.localPosition = Vector3.zero;
 
             return minion;
+
         }
 
         return minion;
