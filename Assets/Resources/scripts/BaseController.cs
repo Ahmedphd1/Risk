@@ -28,7 +28,7 @@ public class BaseController : NetworkBehaviour
             meshcollider = this.transform.parent.parent.GetComponent<MeshCollider>();
             basecircle = this.transform.gameObject;
 
-            minion = initminion(basecircle);
+            InitMinionServerRpc();
             init = false;
         }
 
@@ -103,9 +103,9 @@ public class BaseController : NetworkBehaviour
         }
     }
 
-    minion initminion(GameObject basecircle)
+    [ServerRpc]
+    private void InitMinionServerRpc(ServerRpcParams param = default)
     {
-
         minion minion = Instantiate(crab.getprefab()).GetComponent<minion>();
         minion.getcanvas().transform.localScale = crab.getscale();
         minion.getcanvas().name = crab.getname();
@@ -114,19 +114,9 @@ public class BaseController : NetworkBehaviour
         {
             minion.isclickable = false;
             minion.ismoveable = false;
-            minion.getcanvas().GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
+            minion.getcanvas().GetComponent<NetworkObject>().SpawnWithOwnership(param.Receive.SenderClientId);
             minion.getcanvas().transform.SetParent(basecircle.transform, false);
             minion.getcanvas().transform.localPosition = Vector3.zero;
-
-            return minion;
-
         }
-
-        return minion;
-    }
-
-    float scaleminion(Vector3 worldscale, int percentageof)
-    {
-        return (float)((Math.Abs(worldscale.x) / 100) * percentageof);
     }
 }
