@@ -1,0 +1,18 @@
+1. use high res ai imaging and then generate a 3d model
+
+use a high resolution or a good ai image website to generate an image. Then use this website
+
+https://app.meshy.ai/
+
+to convert it to 3d image
+
+
+2. Use website to generate a 3d image
+
+https://app.meshy.ai/
+
+generate 3d model
+
+after that. refine the 3d model for better quality
+
+
